@@ -17,7 +17,7 @@ general:
   ignore_class_threshold: 100
   project_name: scannet200
   workspace: salwakhatib
-  experiment_name: DEBUG_ABLATION2
+  experiment_name: DEBUG_ABLATIONNE2
   num_targets: 201
   add_instance: true
   dbscan_eps: 0.95
@@ -54,7 +54,7 @@ general:
 defaults:
   - data: indoor
   - data/data_loaders: simple_loader
-  - data/datasets: scannet
+  - data/datasets: scannet200
   - data/collation_functions: voxelize_collate
   - logging: full
   - model: mask3d

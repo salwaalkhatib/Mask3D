@@ -226,6 +226,11 @@ class SetCriterion(nn.Module):
         del target_masks
         return losses
 
+    def loss_contrastive(self, outputs, targets, indices, num_masks, mask_type):
+        assert "queries" in outputs
+        queries = outputs["queries"].float()
+        return {"loss_contrastive": 0}
+
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(indices)])
@@ -241,7 +246,8 @@ class SetCriterion(nn.Module):
     def get_loss(self, loss, outputs, targets, indices, num_masks, mask_type):
         loss_map = {
             'labels': self.loss_labels,
-            'masks': self.loss_masks
+            'masks': self.loss_masks,
+            'contrastive': self.loss_contrastive,
         }
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
         return loss_map[loss](outputs, targets, indices, num_masks, mask_type)
@@ -257,6 +263,9 @@ class SetCriterion(nn.Module):
 
         # Retrieve the matching between the outputs of the last layer and the targets
         indices = self.matcher(outputs_without_aux, targets, mask_type)
+        
+        # get the queries that are matched
+        # outputs['queries'][0].squeeze()[indices[0][0]]
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
         num_masks = sum(len(t["labels"]) for t in targets)
@@ -277,9 +286,12 @@ class SetCriterion(nn.Module):
             for i, aux_outputs in enumerate(outputs["aux_outputs"]):
                 indices = self.matcher(aux_outputs, targets, mask_type)
                 for loss in self.losses:
-                    l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_masks, mask_type)
-                    l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
-                    losses.update(l_dict)
+                    if(loss == "contrastive"):
+                        continue
+                    else:
+                        l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_masks, mask_type)
+                        l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
+                        losses.update(l_dict)
 
         return losses
 

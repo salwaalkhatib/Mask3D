@@ -267,6 +267,7 @@ class Mask3D(nn.Module):
 
         predictions_class = []
         predictions_mask = []
+        queries_final = []
 
         for decoder_counter in range(self.num_decoders):
             if self.shared_decoder:
@@ -393,6 +394,7 @@ class Mask3D(nn.Module):
                                                           coords=coords)
         predictions_class.append(output_class)
         predictions_mask.append(outputs_mask)
+        queries_final.append(queries)
 
         return {
             'pred_logits': predictions_class[-1],
@@ -401,7 +403,8 @@ class Mask3D(nn.Module):
                 predictions_class, predictions_mask
             ),
             'sampled_coords': sampled_coords.detach().cpu().numpy() if sampled_coords is not None else None,
-            'backbone_features': pcd_features
+            'backbone_features': pcd_features,
+            'queries': queries_final
         }
 
     def mask_module(self, query_feat, mask_features, mask_segments, num_pooling_steps, ret_attn_mask=True,
