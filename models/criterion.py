@@ -228,7 +228,24 @@ class SetCriterion(nn.Module):
 
     def loss_contrastive(self, outputs, targets, indices, num_masks, mask_type):
         assert "queries" in outputs
-        queries = outputs["queries"].float()
+        queries = []
+        batch_size = len(indices)
+        for i in range(batch_size):
+            queries.append(outputs["queries"][0][i].float().squeeze()[indices[i][0]])
+        queries = torch.stack(queries, dim=0)
+        anchor_feature = queries
+        # queries = outputs["queries"][0].float().squeeze()[:,indices[0][0]]
+        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
+        mask = torch.eq(target_classes_o, target_classes_o.T).float().to(queries.device)
+        
+        # compute logits
+        anchor_dot_contrast = torch.div(
+            torch.matmul(anchor_feature, queries.T),
+            0.07)
+        # for numerical stability
+        logits_max, _ = torch.max(anchor_dot_contrast, dim=1, keepdim=True)
+        logits = anchor_dot_contrast - logits_max.detach()
+        
         return {"loss_contrastive": 0}
 
     def _get_src_permutation_idx(self, indices):

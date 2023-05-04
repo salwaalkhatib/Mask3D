@@ -17,7 +17,7 @@ general:
   ignore_class_threshold: 100
   project_name: scannet200
   workspace: salwakhatib
-  experiment_name: DEBUG_ABLATIONNE2
+  experiment_name: DEBUG_ABLATIONNE12
   num_targets: 201
   add_instance: true
   dbscan_eps: 0.95
