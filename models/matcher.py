@@ -75,7 +75,7 @@ class HungarianMatcher(nn.Module):
     while the others are un-matched (and thus treated as non-objects).
     """
 
-    def __init__(self, cost_class: float = 1, cost_mask: float = 1, cost_dice: float = 1, num_points: int = 0):
+    def __init__(self, cost_class: float = 1, cost_mask: float = 1, cost_dice: float = 1, cost_contrastive: float = 1, num_points: int = 0):
         """Creates the matcher
 
         Params:
@@ -87,8 +87,9 @@ class HungarianMatcher(nn.Module):
         self.cost_class = cost_class
         self.cost_mask = cost_mask
         self.cost_dice = cost_dice
+        self.cost_contrastive = cost_contrastive
 
-        assert cost_class != 0 or cost_mask != 0 or cost_dice != 0, "all costs cant be 0"
+        assert cost_class != 0 or cost_mask != 0 or cost_dice != 0 or cost_contrastive != 0, "all costs cant be 0"
 
         self.num_points = num_points
 
@@ -195,6 +196,7 @@ class HungarianMatcher(nn.Module):
             "cost_class: {}".format(self.cost_class),
             "cost_mask: {}".format(self.cost_mask),
             "cost_dice: {}".format(self.cost_dice),
+            "cost_contrastive: {}".format(self.cost_contrastive),
         ]
         lines = [head] + [" " * _repr_indent + line for line in body]
         return "\n".join(lines)

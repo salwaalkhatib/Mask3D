@@ -232,11 +232,11 @@ class SetCriterion(nn.Module):
         batch_size = len(indices)
         for i in range(batch_size):
             queries.append(outputs["queries"][0][i].float().squeeze()[indices[i][0]])
-        queries = torch.stack(queries, dim=0)
+        queries = torch.cat(queries, dim=0)
         anchor_feature = queries
         # queries = outputs["queries"][0].float().squeeze()[:,indices[0][0]]
         target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        mask = torch.eq(target_classes_o, target_classes_o.T).float().to(queries.device)
+        mask = torch.eq(target_classes_o.unsqueeze(1), target_classes_o.unsqueeze(1).T).float().to(queries.device)
         
         # compute logits
         anchor_dot_contrast = torch.div(
@@ -245,8 +245,24 @@ class SetCriterion(nn.Module):
         # for numerical stability
         logits_max, _ = torch.max(anchor_dot_contrast, dim=1, keepdim=True)
         logits = anchor_dot_contrast - logits_max.detach()
+        logits_mask = torch.scatter(
+            torch.ones_like(mask),
+            1,
+            torch.arange(mask.shape[0]).view(-1, 1).to(queries.device),
+            0
+        )
+        mask = mask * logits_mask
         
-        return {"loss_contrastive": 0}
+        # Compute log_prob
+        exp_logits = torch.exp(logits) * logits_mask
+        log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
+        
+        # compute mean of log-likelihood over positive
+        mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
+        
+        loss = - (0.07 / 0.07) * mean_log_prob_pos
+        
+        return {"loss_contrastive": torch.nan_to_num(loss).mean()}
 
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices
@@ -305,10 +321,9 @@ class SetCriterion(nn.Module):
                 for loss in self.losses:
                     if(loss == "contrastive"):
                         continue
-                    else:
-                        l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_masks, mask_type)
-                        l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
-                        losses.update(l_dict)
+                    l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_masks, mask_type)
+                    l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
+                    losses.update(l_dict)
 
         return losses
 

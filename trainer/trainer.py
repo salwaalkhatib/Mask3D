@@ -65,7 +65,8 @@ class InstanceSegmentation(pl.LightningModule):
         matcher = hydra.utils.instantiate(config.matcher)
         weight_dict = {"loss_ce": matcher.cost_class,
                        "loss_mask": matcher.cost_mask,
-                       "loss_dice": matcher.cost_dice}
+                       "loss_dice": matcher.cost_dice,
+                       "loss_contrastive": matcher.cost_contrastive,}
 
         aux_weight_dict = {}
         for i in range(self.model.num_levels * self.model.num_decoders):
@@ -152,6 +153,9 @@ class InstanceSegmentation(pl.LightningModule):
 
         logs['train_mean_loss_dice'] = statistics.mean(
             [item for item in [v for k, v in logs.items() if "loss_dice" in k]])
+    
+        logs['train_mean_loss_contrastive'] = statistics.mean(
+            [item for item in [v for k, v in logs.items() if "loss_contrastive" in k]])
 
         self.log_dict(logs)
         return sum(losses.values())
@@ -845,6 +849,7 @@ class InstanceSegmentation(pl.LightningModule):
         dd['val_mean_loss_ce'] = statistics.mean([item for item in [v for k,v in dd.items() if "loss_ce" in k]])
         dd['val_mean_loss_mask'] = statistics.mean([item for item in [v for k,v in dd.items() if "loss_mask" in k]])
         dd['val_mean_loss_dice'] = statistics.mean([item for item in [v for k,v in dd.items() if "loss_dice" in k]])
+        dd['val_mean_loss_contrastive'] = statistics.mean([item for item in [v for k,v in dd.items() if "loss_contrastive" in k]])
 
         self.log_dict(dd)
 

@@ -7,7 +7,7 @@ CURR_QUERY=150
 
 # TRAIN
 python main_instance_segmentation.py \
-general.experiment_name="scannet200_val_test" \
+general.experiment_name="scannet200_val_testcontr3" \
 general.project_name="scannet200" \
 data/datasets=scannet200 \
 general.num_targets=201 \
