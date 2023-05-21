@@ -6,7 +6,7 @@
 *.out
 
 .vscode/
-
+conf/config_base_instance_segmentation.yaml
 
 
 

@@ -250,7 +250,7 @@ class SetCriterion(nn.Module):
             1,
             torch.arange(mask.shape[0]).view(-1, 1).to(queries.device),
             0
-        )
+        ) # diagonal zeros
         mask = mask * logits_mask
         
         # Compute log_prob
@@ -258,11 +258,11 @@ class SetCriterion(nn.Module):
         log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
         
         # compute mean of log-likelihood over positive
-        mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
+        mean_log_prob_pos = (mask * log_prob).sum(1) / (mask.sum(1)+ 1e-8)
         
         loss = - (0.07 / 0.07) * mean_log_prob_pos
         
-        return {"loss_contrastive": torch.nan_to_num(loss).mean()}
+        return {"loss_contrastive": loss.mean()}
 
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices
