@@ -255,12 +255,15 @@ class SetCriterion(nn.Module):
         
         # Compute log_prob
         exp_logits = torch.exp(logits) * logits_mask
-        log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
+        log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True)+ 1e-8)
         
         # compute mean of log-likelihood over positive
         mean_log_prob_pos = (mask * log_prob).sum(1) / (mask.sum(1)+ 1e-8)
         
         loss = - (0.07 / 0.07) * mean_log_prob_pos
+        # check if loss has nans in it
+        if(torch.isnan(loss).any()):
+            print("I am here")
         
         return {"loss_contrastive": loss.mean()}
 
