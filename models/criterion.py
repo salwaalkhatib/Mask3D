@@ -236,7 +236,7 @@ class SetCriterion(nn.Module):
         anchor_feature = queries
         # queries = outputs["queries"][0].float().squeeze()[:,indices[0][0]]
         target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        mask = torch.eq(target_classes_o.unsqueeze(1), target_classes_o.unsqueeze(1).T).float().to(queries.device)
+        mask = torch.eq(target_classes_o.unsqueeze(1), target_classes_o.unsqueeze(1).T).float().to(queries.device) #1s where labels match
         
         # compute logits
         anchor_dot_contrast = torch.div(
@@ -251,7 +251,7 @@ class SetCriterion(nn.Module):
             torch.arange(mask.shape[0]).view(-1, 1).to(queries.device),
             0
         ) # diagonal zeros
-        mask = mask * logits_mask
+        mask = mask * logits_mask # masking out self contrast cases
         
         # Compute log_prob
         exp_logits = torch.exp(logits) * logits_mask

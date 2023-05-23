@@ -3,5 +3,5 @@ _target_: models.matcher.HungarianMatcher
 cost_class: 2.
 cost_mask: 5.
 cost_dice: 2.
-cost_contrastive: 0.1
+cost_contrastive: 1.0
 num_points: -1
